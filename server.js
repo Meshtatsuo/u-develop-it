@@ -76,82 +76,6 @@ app.get("/api/candidate/:id", (req, res) => {
     });
   });
 });
-// get parties
-app.get("/api/parties", (req, res) => {
-  const sql = `SELECT * FROM parties`;
-  db.query(sql, (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: "success",
-      data: rows,
-    });
-  });
-});
-
-// get single party
-app.get("/api/party/:id", (req, res) => {
-  const sql = `SELECT * FROM parties WHERE id = ?`;
-  const params = [req.params.id];
-  db.query(sql, params, (err, row) => {
-    if (err) {
-      res.status(400).json({ error: err.message });
-    }
-    res.json({
-      message: "success",
-      data: row,
-    });
-  });
-});
-
-// Delete party
-app.delete("/api/party/:id", (req, res) => {
-  const sql = `DELETE FROM parties where ID = ?`;
-  const params = [req.params.id];
-  db.query(sql, params, (err, result) => {
-    if (err) {
-      res.status(400).json({ error: res.message });
-      //checks if anything was deleted
-    } else if (!result.affectedRows) {
-      res.json({
-        message: "Party not found",
-      });
-    } else {
-      res.json({
-        message: "deleted",
-        changes: result.affectedRows,
-        id: req.params.id,
-      });
-    }
-  });
-});
-
-// Delete a single candidate
-app.delete("/api/candidate/:id", (req, res) => {
-  const sql = `DELETE FROM candidates WHERE id = ?`;
-  const params = [req.params.id];
-
-  db.query(sql, params, (err, result) => {
-    if (err) {
-      res.status(400).json({
-        error: err.message,
-      });
-      return;
-    } else if (!result.affectedRows) {
-      res.json({
-        message: "Candidate not found.",
-      });
-    } else {
-      res.json({
-        message: "deleted",
-        changes: result.affectedRows,
-        id: req.params.id,
-      });
-    }
-  });
-});
 
 // Create a candidate
 app.post("/api/candidate", ({ body }, res) => {
@@ -184,6 +108,117 @@ app.post("/api/candidate", ({ body }, res) => {
       message: "success",
       data: body,
     });
+  });
+});
+
+// Delete a single candidate
+app.delete("/api/candidate/:id", (req, res) => {
+  const sql = `DELETE FROM candidates WHERE id = ?`;
+  const params = [req.params.id];
+
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      res.status(400).json({
+        error: err.message,
+      });
+      return;
+    } else if (!result.affectedRows) {
+      res.json({
+        message: "Candidate not found.",
+      });
+    } else {
+      res.json({
+        message: "deleted",
+        changes: result.affectedRows,
+        id: req.params.id,
+      });
+    }
+  });
+});
+
+// Update a candidate's party
+app.put("/api/candidate/:id", (req, res) => {
+  // check for valid party id variable in request body
+  const errors = inputCheck(req.body, "party_id");
+  // return bad request error if true
+  if (errors) {
+    res.status(400).json({ error: errors });
+    return;
+  }
+  // else continue with query
+  const sql = `UPDATE candidates SET party_id = ?
+               WHERE id = ?`;
+  const params = [req.body.party_id, req.params.id];
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      res.status(400).json({ error: err.message });
+    }
+    //check if a record was found
+    else if (!result.affectedRows) {
+      res.json({
+        message: "Candidate not found",
+      });
+    }
+    // Else update candidate party
+    else {
+      res.json({
+        message: "success",
+        data: req.body,
+        changes: result.affectedRows,
+      });
+    }
+  });
+});
+
+// get parties
+app.get("/api/parties", (req, res) => {
+  const sql = `SELECT * FROM parties`;
+  db.query(sql, (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({
+      message: "success",
+      data: rows,
+    });
+  });
+});
+
+// get single party
+app.get("/api/party/:id", (req, res) => {
+  const sql = `SELECT * FROM parties WHERE id = ?`;
+  const params = [req.params.id];
+  db.query(sql, params, (err, row) => {
+    if (err) {
+      res.status(400).json({ error: err.message });
+    }
+    res.json({
+      message: "success",
+      data: row,
+    });
+  });
+});
+
+// Delete single party
+app.delete("/api/party/:id", (req, res) => {
+  const sql = `DELETE FROM parties where ID = ?`;
+  const params = [req.params.id];
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      res.status(400).json({ error: res.message });
+      //checks if anything was deleted
+    } else if (!result.affectedRows) {
+      res.json({
+        message: "Party not found",
+      });
+    } else {
+      res.json({
+        message: "deleted",
+        changes: result.affectedRows,
+        id: req.params.id,
+      });
+    }
   });
 });
 
